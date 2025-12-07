@@ -1,7 +1,14 @@
+![version](https://img.shields.io/badge/version-20%2B-E23089)
+![platform](https://img.shields.io/static/v1?label=platform&message=mac-arm&color=blue)
+[![license](https://img.shields.io/github/license/miyako/LlamaEdge)](LICENSE)
+![downloads](https://img.shields.io/github/downloads/miyako/LlamaEdge/total)
+
 # LlamaEdge
 Local inference engine
 
-[WasmEdge](https://wasmedge.org) supports [Windows](https://wasmedge.org/docs/contribute/source/os/windows/) but [LlamaEdge](https://llamaedge.com) or its [stable-diffusion plugin](https://wasmedge.org/docs/start/wasmedge/extensions/plugins/) is for macOS and Linux only.
+* [WasmEdge](https://wasmedge.org) supports [Windows](https://wasmedge.org/docs/contribute/source/os/windows/) but [LlamaEdge](https://llamaedge.com) or its [stable-diffusion plugin](https://wasmedge.org/docs/start/wasmedge/extensions/plugins/) is for macOS and Linux only.
+
+* Intel Mac is presumably supported but seemingly inpossible to compile on Apple Silicon+Rosetta toolset.
 
 # Stable Diffusion Models in GGUF format
 
