@@ -10,8 +10,8 @@ Class constructor($port : Integer; $file : 4D:C1709.File; $URL : Text; $options 
 			$modelsFolder:=Folder:C1567(fk home folder:K87:24).folder(".LlamaEdge")
 			var $URL : Text
 			var $file : 4D:C1709.File
-			$URL:="https://huggingface.co/second-state/stable-diffusion-2-1-GGUF/resolve/main/v2-1_768-nonema-pruned-f16.gguf"
-			$file:=$modelsFolder.file("v2-1_768-nonema-pruned-f16.gguf")
+			$URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
+			$file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
 		End if 
 		
 		If ($port=0) || ($port<0) || ($port>65535)
