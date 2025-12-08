@@ -59,7 +59,7 @@ Function start($option : Object) : 4D:C1709.SystemWorker
 wasmedge --dir .:. sd-api-server.wasm --model-name sd3 --model ./models/sd3-medium-Q4_1.gguf
 */
 	
-	SET TEXT TO PASTEBOARD:C523($command)
+	//SET TEXT TO PASTEBOARD($command)
 	
 	return This:C1470.controller.execute($command; $isStream ? $option.model : Null:C1517; $option.data).worker
 	

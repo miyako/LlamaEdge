@@ -9,7 +9,7 @@ Function start($port : Integer; $option : Object)
 	End if 
 	
 	var $signal : 4D:C1709.Signal
-	$signal:=New signal:C1641("LlamaEdge")
+	$signal:=New signal:C1641("LlamaEdge.wasm")
 	
 	CALL WORKER:C1389($signal.description; This:C1470._start; $port; $option; $signal)
 	
@@ -55,7 +55,7 @@ Function _terminate($signal : 4D:C1709.Signal)
 Function terminate()
 	
 	var $signal : 4D:C1709.Signal
-	$signal:=New signal:C1641("LlamaEdge")
+	$signal:=New signal:C1641("LlamaEdge.wasm")
 	
 	CALL WORKER:C1389($signal.description; This:C1470._terminate; $signal)
 	
@@ -86,7 +86,7 @@ Function _isRunning($port : Integer; $signal : 4D:C1709.Signal)
 Function isRunning($port : Integer) : Boolean
 	
 	var $signal : 4D:C1709.Signal
-	$signal:=New signal:C1641("LlamaEdge")
+	$signal:=New signal:C1641("LlamaEdge.wasm")
 	
 	CALL WORKER:C1389($signal.description; This:C1470._isRunning; $port; $signal)
 	
