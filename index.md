@@ -29,10 +29,10 @@ Else
     $modelsFolder:=Folder(fk home folder).folder(".LlamaEdge")
     var $URL : Text
     var $file : 4D.File
-    $URL:="https://huggingface.co/second-state/stable-diffusion-2-1-GGUF/resolve/main/v2-1_768-nonema-pruned-Q4_0.gguf"
-    $file:=$modelsFolder.file("v2-1_768-nonema-pruned-Q4_0.gguf")
+    $URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
+    $file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
     $port:=8080
-    $LlamaEdge:=cs.LlamaEdge.new($port; $file; $URL; {model_name: "sd3"}; Formula(ALERT(This.file.name+($1.success ? " started!" : " did not start..."))))
+    $LlamaEdge:=cs.LlamaEdge.new($port; $file; $URL; {model_name: "sd-v1.5"}; Formula(ALERT(This.file.name+($1.success ? " started!" : " did not start..."))))
 End if 
 ```
 
@@ -44,23 +44,29 @@ Unless the server is already running (in which case the costructor does nothing)
 Now you can test the server:
 
 ```
-curl -X POST http://127.0.0.1:8080/v1/embeddings \
-     -H "Content-Type: application/json" \
-     -d '{"input":"The quick brown fox jumps over the lazy dog."}'
+curl -X POST 'http://localhost:8080/v1/images/generations' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      "model": "sd-v1.5",
+      "prompt": "A futuristic city skyline at sunset"
+  }'
 ```
 
 Or, use AI Kit:
 
 ```4d
-var $AIClient : cs.AIKit.OpenAI
-$AIClient:=cs.AIKit.OpenAI.new()
-$AIClient.baseURL:="http://127.0.0.1:8080/v1"
-
-var $text : Text
-$text:="The quick brown fox jumps over the lazy dog."
-
-var $responseEmbeddings : cs.AIKit.OpenAIEmbeddingsResult
-$responseEmbeddings:=$AIClient.embeddings.create($text)
+    var $AIClient : cs.AIKit.OpenAI
+    $AIClient:=cs.AIKit.OpenAI.new()
+    $AIClient.baseURL:="http://127.0.0.1:8080/v1"
+    
+    var $text : Text
+    $text:="A futuristic city skyline at sunset"
+    
+    var $parameters : cs.AIKit.OpenAIImageParameters
+    $parameters:=cs.AIKit.OpenAIImageParameters.new()
+    
+    var $result : cs.AIKit.OpenAIImagesResult
+    $result:=$AIClient.images.generate($text; $parameters)
 ```
 
 Finally to terminate the server:
@@ -88,8 +94,24 @@ The API is compatibile with [Open AI](https://platform.openai.com/docs/api-refer
 
 You can find quantised stable diffusion models on [Hugging Face](https://huggingface.co/second-state).
 
+Not all models ara compatible with Apple Silicon.
+
 Here are a few models smaller than a couple of gigabytes:
 
 |Version|Quantisation|Size|
 |-|-:|-:|
-|[2.1](https://huggingface.co/second-state/stable-diffusion-2-1-GGUF/resolve/main/v2-1_768-nonema-pruned-f16.gguf)|`f16`|`2.61 GB`|
+|[stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf](https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf)|`Q8_0`|`1.76 GB`|
+
+Typical error:
+
+* v2-1_768-nonema-pruned-Q8_0.gguf
+
+```
+/Users/ss/workspace/wasi-nn-ggml-plugin/actions-runner/_work/wasi-nn-ggml-plugin/wasi-nn-ggml-plugin/build/_deps/stable-diffusion-src/ggml/src/ggml-metal.m:2418: GGML_ASSERT(ne00 % 4 == 0) failed
+```
+
+* sd3-medium-Q4_1.gguf
+
+```
+/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/llama-core-0.26.1/src/lib.rs:539: Fail to create the context. INVALID_ARGUMENT (error 1)
+```
