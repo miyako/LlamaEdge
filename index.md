@@ -20,10 +20,10 @@ The [`sd-api-server`](https://github.com/LlamaEdge/sd-api-server) runtime suppor
 Instantiate `cs.LlamaEdge.LlamaEdge` in your *On Startup* database method:
 
 ```4d
-var $LlamaEdge : cs.LlamaEdge
+var $LlamaEdge : cs.LlamaEdge.LlamaEdge
 
 If (False)
-    $LlamaEdge:=cs.LlamaEdge.new()  //default
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()  //default
 Else 
     var $modelsFolder : 4D.Folder
     $modelsFolder:=Folder(fk home folder).folder(".LlamaEdge")
@@ -32,7 +32,7 @@ Else
     $URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
     $file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
     $port:=8080
-    $LlamaEdge:=cs.LlamaEdge.new($port; $file; $URL; {model_name: "sd-v1.5"}; Formula(ALERT(This.file.name+($1.success ? " started!" : " did not start..."))))
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $file; $URL; {model_name: "sd-v1.5"}; Formula(ALERT(This.file.name+($1.success ? " started!" : " did not start..."))))
 End if 
 ```
 

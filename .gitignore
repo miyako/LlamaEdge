@@ -1,3 +1,9 @@
 LlamaEdge/userPreferences.*
 LlamaEdge/Resources/bin/macOS/*
-LlamaEdge/Project/DerivedData/methodAttributes.json
+LlamaEdge/Project/DerivedData/*
+LlamaEdge/Project/Sources/settings.4DSettings
+LlamaEdge/Settings/buildApp.4DSettings
+LlamaEdge/Data/Logs/buildApp.log.xml
+LlamaEdge/Data/Logs/BuildLogStyleSheet.css
+LlamaEdge/Libraries/lib4d-arm64.dylib
+LlamaEdge/Resources/en.lproj/syntaxEN.json
