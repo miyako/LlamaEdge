@@ -11,5 +11,5 @@ Else
 	$URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
 	$file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
 	$port:=8080
-	$LlamaEdge:=cs:C1710.LlamaEdge.new($port; $file; $URL; {model_name: "sd-v1.5"}; Formula:C1597(ALERT:C41(This:C1470.file.name+($1.success ? " started!" : " did not start..."))))
+	$LlamaEdge:=cs:C1710.LlamaEdge.new($port; $file; $URL; {model_name: "sd15"}; Formula:C1597(ALERT:C41(This:C1470.file.name+($1.success ? " started!" : " did not start..."))))
 End if 

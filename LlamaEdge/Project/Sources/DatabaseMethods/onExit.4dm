@@ -1,1 +1,1 @@
-//TEST_LlamaEdge_terminate
+TEST_LlamaEdge_terminate

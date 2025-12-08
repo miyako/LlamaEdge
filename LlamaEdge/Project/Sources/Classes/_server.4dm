@@ -29,8 +29,7 @@ Function start($option : Object) : 4D:C1709.SystemWorker
 			Else 
 				$command+=" --model "
 			End if 
-			
-			$command+=This:C1470.escape($option.model.path)
+			$command+=This:C1470.escape(This:C1470.expand($option.model).path)
 			$command+=" "
 	End case 
 	
@@ -58,6 +57,8 @@ Function start($option : Object) : 4D:C1709.SystemWorker
 /*
 wasmedge --dir .:. sd-api-server.wasm --model-name sd3 --model ./models/sd3-medium-Q4_1.gguf
 */
+	
+	//This.controller.currentDirectory:=This.escape(This.expand($option.model).parent.path)
 	
 	//SET TEXT TO PASTEBOARD($command)
 	
