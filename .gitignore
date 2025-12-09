@@ -7,3 +7,4 @@ LlamaEdge/Data/Logs/buildApp.log.xml
 LlamaEdge/Data/Logs/BuildLogStyleSheet.css
 LlamaEdge/Libraries/lib4d-arm64.dylib
 LlamaEdge/Resources/en.lproj/syntaxEN.json
+LlamaEdge/Data/*

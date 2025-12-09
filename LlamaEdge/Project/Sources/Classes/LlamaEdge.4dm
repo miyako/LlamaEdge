@@ -1,31 +1,36 @@
-Class constructor($port : Integer; $file : 4D:C1709.File; $URL : Text; $options : Object; $formula : 4D:C1709.Function)
+Class constructor($port : Integer; $models : Collection; $options : Object; $formula : 4D:C1709.Function)
 	
 	var $LlamaEdge : cs:C1710._worker
 	$LlamaEdge:=cs:C1710._worker.new()
 	
 	If (Not:C34($LlamaEdge.isRunning($port)))
 		
-		If (Value type:C1509($file)#Is object:K8:27) || (Not:C34(OB Instance of:C1731($file; 4D:C1709.File))) || ($URL="")
+		If ($models=Null:C1517)
+			$models:=[]
+		End if 
+		
+		If ($models.length=0)
 			var $modelsFolder : 4D:C1709.Folder
 			$modelsFolder:=Folder:C1567(fk home folder:K87:24).folder(".LlamaEdge")
-			var $URL : Text
 			var $file : 4D:C1709.File
-			$URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
+			var $URL : Text
 			$file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
+			$URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
+			$models.push({file: $file; URL: $URL})
 		End if 
 		
 		If ($port=0) || ($port<0) || ($port>65535)
 			$port:=8080
 		End if 
 		
-		CALL WORKER:C1389(OB Class:C1730(This:C1470).name; This:C1470._Start; $port; $file; $URL; $options; $formula)
+		CALL WORKER:C1389(OB Class:C1730(This:C1470).name; This:C1470._Start; $port; $models; $options; $formula)
 		
 	End if 
 	
-Function _Start($port : Integer; $file : 4D:C1709.File; $URL : Text; $options : Object; $formula : 4D:C1709.Function)
+Function _Start($port : Integer; $models : Collection; $options : Object; $formula : 4D:C1709.Function)
 	
 	var $model : cs:C1710.Model
-	$model:=cs:C1710.Model.new($port; $file; $URL; $options; $formula)
+	$model:=cs:C1710.Model.new($port; $models; $options; $formula)
 	
 Function terminate()
 	
