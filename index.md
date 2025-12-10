@@ -20,9 +20,9 @@ The [`sd-api-server`](https://github.com/LlamaEdge/sd-api-server) runtime suppor
 Instantiate `cs.LlamaEdge.LlamaEdge` in your *On Startup* database method:
 
 ```4d
-var $LlamaEdge : cs.LlamaEdge.LlamaEdge
+var $LlamaEdge : cs.LlamaEdge
 
-If (True)
+If (False)
     $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()  //default
 Else 
     var $modelsFolder : 4D.Folder
@@ -60,12 +60,12 @@ Else
     $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; \
     {model_name: "flux1-schnell"; \
     home: Folder(fk home folder); \
-    diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].fullName; \
-    vae: "./.LlamaEdge/flux1-schnell/"+$models[1].fullName; \
-    clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].fullName; \
-    t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].fullName}; \
+    diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].file.fullName; \
+    vae: "./.LlamaEdge/flux1-schnell/"+$models[1].file.fullName; \
+    clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].file.fullName; \
+    t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].file.fullName}; \
     Formula(ALERT(This.options.models.extract("file.name").join(",")+($1.success ? " started!" : " did not start..."))))
-End if 
+End if  
 ```
 
 #### AI Kit compatibility
