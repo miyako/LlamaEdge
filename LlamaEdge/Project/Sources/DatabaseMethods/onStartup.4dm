@@ -1,6 +1,6 @@
 var $LlamaEdge : cs:C1710.LlamaEdge
 
-If (True:C214)
+If (False:C215)
 	$LlamaEdge:=cs:C1710.LlamaEdge.new()  //default
 Else 
 	var $modelsFolder : 4D:C1709.Folder
@@ -38,9 +38,9 @@ model paths are relative to $home which is mapped to . in wasm
 	$LlamaEdge:=cs:C1710.LlamaEdge.new($port; $models; \
 		{model_name: "flux1-schnell"; \
 		home: Folder:C1567(fk home folder:K87:24); \
-		diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].fullName; \
-		vae: "./.LlamaEdge/flux1-schnell/"+$models[1].fullName; \
-		clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].fullName; \
-		t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].fullName}; \
+		diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].file.fullName; \
+		vae: "./.LlamaEdge/flux1-schnell/"+$models[1].file.fullName; \
+		clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].file.fullName; \
+		t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].file.fullName}; \
 		Formula:C1597(ALERT:C41(This:C1470.options.models.extract("file.name").join(",")+($1.success ? " started!" : " did not start..."))))
 End if 
