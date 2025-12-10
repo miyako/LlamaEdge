@@ -22,7 +22,7 @@ Instantiate `cs.LlamaEdge.LlamaEdge` in your *On Startup* database method:
 ```4d
 var $LlamaEdge : cs.LlamaEdge.LlamaEdge
 
-If (False)
+If (True)
     $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()  //default
 Else 
     var $modelsFolder : 4D.Folder
