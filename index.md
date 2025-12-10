@@ -33,75 +33,39 @@ Else
     $models:=[]
     
     //Main model
-    $file:=$modelsFolder.file("flux1-schnell-Q4_0.gguf")
+    $file:=$modelsFolder.file("flux1-schnell/flux1-schnell-Q4_0.gguf")
     $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/flux1-schnell-Q4_0.gguf"
     $models.push({file: $file; URL: $URL})
     
     //VAE file
-    $file:=$modelsFolder.file("ae-f16.gguf")
+    $file:=$modelsFolder.file("flux1-schnell/ae-f16.gguf")
     $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/ae-f16.gguf"
     $models.push({file: $file; URL: $URL})
     
     //clip_l encoder
-    $file:=$modelsFolder.file("clip_l-Q8_0.gguf")
+    $file:=$modelsFolder.file("flux1-schnell/clip_l-Q8_0.gguf")
     $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/clip_l-Q8_0.gguf"
     $models.push({file: $file; URL: $URL})
     
     //t5xxl encoder
-    $file:=$modelsFolder.file("t5xxl-Q2_K.gguf")
+    $file:=$modelsFolder.file("flux1-schnell/t5xxl-Q2_K.gguf")
     $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/t5xxl-Q2_K.gguf"
     $models.push({file: $file; URL: $URL})
+    
+    /*
+        model paths are relative to $home which is mapped to . in wasm
+    */
     
     $port:=8080
     $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; \
     {model_name: "flux1-schnell"; \
-    diffusion_model: $models[0].file; \
-    vae: $models[1].file; \
-    clip_l: $models[2].file; \
-    t5xxl: $models[3].file}; \
+    home: Folder(fk home folder); \
+    diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].fullName; \
+    vae: "./.LlamaEdge/flux1-schnell/"+$models[1].fullName; \
+    clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].fullName; \
+    t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].fullName}; \
     Formula(ALERT(This.options.models.extract("file.name").join(",")+($1.success ? " started!" : " did not start..."))))
 End if 
-```
-
-Unless the server is already running (in which case the costructor does nothing), the following procedure runs in the background:
-
-1. The specified model is downloaded via HTTP
-2. The `mistralrs-server` program is started
-
-Now you can test the server:
-
-```
-curl -X POST 'http://localhost:8080/v1/images/generations' \
-  --header 'Content-Type: application/json' \
-  --data '{
-      "model": "flux1-schnell",
-      "prompt": "A futuristic city skyline at sunset"
-  }'
-```
-
-Or, use AI Kit:
-
-```4d
-    var $AIClient : cs.AIKit.OpenAI
-    $AIClient:=cs.AIKit.OpenAI.new()
-    $AIClient.baseURL:="http://127.0.0.1:8080/v1"
-    
-    var $text : Text
-    $text:="A futuristic city skyline at sunset"
-    
-    var $parameters : cs.AIKit.OpenAIImageParameters
-    $parameters:=cs.AIKit.OpenAIImageParameters.new()
-    
-    var $result : cs.AIKit.OpenAIImagesResult
-    $result:=$AIClient.images.generate($text; $parameters)
-```
-
-Finally to terminate the server:
-
-```4d
-var $LlamaEdge : cs.LlamaEdge.LlamaEdge
-$LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()
-$LlamaEdge.terminate()
 ```
 
 #### AI Kit compatibility
@@ -117,28 +81,6 @@ The API is compatibile with [Open AI](https://platform.openai.com/docs/api-refer
 |Embeddings|`/v1/embeddings`|✅|
 |Files|`/v1/files`||
 
-#### Models
+#### Image Generation Models
 
-You can find quantised stable diffusion models on [Hugging Face](https://huggingface.co/second-state).
-
-Not all models ara compatible with Apple Silicon.
-
-Here are a few models smaller than a couple of gigabytes:
-
-|Version|Quantisation|Size|
-|-|-:|-:|
-|[stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf](https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf)|`Q8_0`|`1.76 GB`|
-
-Typical error:
-
-* v2-1_768-nonema-pruned-Q8_0.gguf
-
-```
-/Users/ss/workspace/wasi-nn-ggml-plugin/actions-runner/_work/wasi-nn-ggml-plugin/wasi-nn-ggml-plugin/build/_deps/stable-diffusion-src/ggml/src/ggml-metal.m:2418: GGML_ASSERT(ne00 % 4 == 0) failed
-```
-
-* sd3-medium-Q4_1.gguf
-
-```
-/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/llama-core-0.26.1/src/lib.rs:539: Fail to create the context. INVALID_ARGUMENT (error 1)
-```
+You can find quantised stable diffusion models on [Hugging Face](https://huggingface.co/second-state). Not all models ara compatible with Apple Silicon.

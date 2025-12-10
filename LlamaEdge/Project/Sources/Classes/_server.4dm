@@ -13,7 +13,23 @@ Function start($option : Object) : 4D:C1709.SystemWorker
 	var $command : Text
 	$command:=This:C1470.escape(This:C1470.executablePath)
 	
-	$command+=" --dir .:. sd-api-server.wasm "
+	var $home : 4D:C1709.Folder
+	If (Value type:C1509($option.home)=Is object:K8:27)\
+		 && (OB Instance of:C1731($option.home; 4D:C1709.Folder))\
+		 && ($option.home.exists)
+		$home:=$option.home
+	Else 
+		$home:=Folder:C1567(fk home folder:K87:24)
+	End if 
+	
+	This:C1470.controller.currentDirectory:=$home
+	
+	//.:/Users/miyako
+	
+	$command+=" --dir .:"+This:C1470.escape(This:C1470.controller.currentDirectory.path)
+	$command+=" "
+	$command+=This:C1470.escape(This:C1470.executableFile.parent.file("sd-api-server.wasm").path)
+	$command+=" "
 	
 	var $arg : Object
 	var $valueType : Integer
@@ -43,7 +59,7 @@ Function start($option : Object) : 4D:C1709.SystemWorker
 	
 	For each ($arg; OB Entries:C1720($option))
 		Case of 
-			: (["diffusion_model"; "vae"; "clip_l"; "t5xxl"; "help"].includes($arg.key))
+			: (["home"; "diffusion_model"; "vae"; "clip_l"; "t5xxl"; "help"].includes($arg.key))
 				continue
 		End case 
 		$valueType:=Value type:C1509($arg.value)

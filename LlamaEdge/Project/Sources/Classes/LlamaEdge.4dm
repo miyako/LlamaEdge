@@ -23,6 +23,7 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $for
 			$models.push({file: $file; URL: $URL})
 			$options.model:=$file
 			$options.model_name:="sd-v1.5"
+			$options.home:=$modelsFolder
 		End if 
 		
 		If ($port=0) || ($port<0) || ($port>65535)

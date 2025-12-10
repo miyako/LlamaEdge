@@ -30,12 +30,17 @@ Else
 	$URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/t5xxl-Q2_K.gguf"
 	$models.push({file: $file; URL: $URL})
 	
+/*
+model paths are relative to $home which is mapped to . in wasm
+*/
+	
 	$port:=8080
 	$LlamaEdge:=cs:C1710.LlamaEdge.new($port; $models; \
 		{model_name: "flux1-schnell"; \
-		diffusion_model: $models[0].file; \
-		vae: $models[1].file; \
-		clip_l: $models[2].file; \
-		t5xxl: $models[3].file}; \
+		home: Folder:C1567(fk home folder:K87:24); \
+		diffusion_model: "./.LlamaEdge/flux1-schnell/"+$models[0].fullName; \
+		vae: "./.LlamaEdge/flux1-schnell/"+$models[1].fullName; \
+		clip_l: "./.LlamaEdge/flux1-schnell/"+$models[2].fullName; \
+		t5xxl: "./.LlamaEdge/flux1-schnell/"+$models[3].fullName}; \
 		Formula:C1597(ALERT:C41(This:C1470.options.models.extract("file.name").join(",")+($1.success ? " started!" : " did not start..."))))
 End if 
