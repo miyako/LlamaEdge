@@ -27,12 +27,39 @@ If (False)
 Else 
     var $modelsFolder : 4D.Folder
     $modelsFolder:=Folder(fk home folder).folder(".LlamaEdge")
-    var $URL : Text
     var $file : 4D.File
-    $URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
-    $file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
+    var $URL : Text
+    var $models : Collection
+    $models:=[]
+    
+    //Main model
+    $file:=$modelsFolder.file("flux1-schnell-Q4_0.gguf")
+    $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/flux1-schnell-Q4_0.gguf"
+    $models.push({file: $file; URL: $URL})
+    
+    //VAE file
+    $file:=$modelsFolder.file("ae-f16.gguf")
+    $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/ae-f16.gguf"
+    $models.push({file: $file; URL: $URL})
+    
+    //clip_l encoder
+    $file:=$modelsFolder.file("clip_l-Q8_0.gguf")
+    $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/clip_l-Q8_0.gguf"
+    $models.push({file: $file; URL: $URL})
+    
+    //t5xxl encoder
+    $file:=$modelsFolder.file("t5xxl-Q2_K.gguf")
+    $URL:="https://huggingface.co/second-state/FLUX.1-schnell-GGUF/resolve/main/t5xxl-Q2_K.gguf"
+    $models.push({file: $file; URL: $URL})
+    
     $port:=8080
-    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $file; $URL; {model_name: "sd-v1.5"}; Formula(ALERT(This.file.name+($1.success ? " started!" : " did not start..."))))
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; \
+    {model_name: "flux1-schnell"; \
+    diffusion_model: $models[0].file; \
+    vae: $models[1].file; \
+    clip_l: $models[2].file; \
+    t5xxl: $models[3].file}; \
+    Formula(ALERT(This.options.models.extract("file.name").join(",")+($1.success ? " started!" : " did not start..."))))
 End if 
 ```
 
@@ -47,7 +74,7 @@ Now you can test the server:
 curl -X POST 'http://localhost:8080/v1/images/generations' \
   --header 'Content-Type: application/json' \
   --data '{
-      "model": "sd-v1.5",
+      "model": "flux1-schnell",
       "prompt": "A futuristic city skyline at sunset"
   }'
 ```

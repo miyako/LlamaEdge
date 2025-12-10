@@ -9,14 +9,20 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $for
 			$models:=[]
 		End if 
 		
+		If ($options=Null:C1517)
+			$options:={}
+		End if 
+		
 		If ($models.length=0)
 			var $modelsFolder : 4D:C1709.Folder
 			$modelsFolder:=Folder:C1567(fk home folder:K87:24).folder(".LlamaEdge")
 			var $file : 4D:C1709.File
 			var $URL : Text
-			$file:=$modelsFolder.file("stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
+			$file:=$modelsFolder.file("sd-v1.5/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf")
 			$URL:="https://huggingface.co/second-state/stable-diffusion-v1-5-GGUF/resolve/main/stable-diffusion-v1-5-pruned-emaonly-Q8_0.gguf"
 			$models.push({file: $file; URL: $URL})
+			$options.model:=$file
+			$options.model_name:="sd-v1.5"
 		End if 
 		
 		If ($port=0) || ($port<0) || ($port>65535)
