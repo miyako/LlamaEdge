@@ -1,0 +1,2 @@
+# LlamaEdgeEmbeddings
+Local inference engine
