@@ -68,7 +68,7 @@ Function onTCP($status : Object; $options : Object)
 	Else 
 		
 		var $statuses : Text
-		$statuses:="TCP port "+String:C10($status.port)+" is aready used by port "+$status.PID.join(",")
+		$statuses:="TCP port "+String:C10($status.port)+" is aready used by process "+$status.PID.join(",")
 		var $error : cs:C1710._error
 		$error:=cs:C1710._error.new(1; $statuses)
 		
