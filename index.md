@@ -20,14 +20,14 @@ The [`llama-api-server`](https://github.com/LlamaEdge/LlamaEdge/tree/main/llama-
 Instantiate `cs.LlamaEdge.LlamaEdge` in your *On Startup* database method:
 
 ```4d
-var $LlamaEdge : cs.LlamaEdge
+var $LlamaEdge : cs.LlamaEdge.LlamaEdge
 
 If (False)
-    $LlamaEdge:=cs.LlamaEdge.new()  //default
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()  //default
 Else 
     var $homeFolder : 4D.Folder
     $homeFolder:=Folder(fk home folder).folder(".LlamaEdge")
-    var $model : cs.LlamaEdgeModel
+    var $model : cs.LlamaEdge.LlamaEdgeModel
     var $file : 4D.File
     var $URL : Text
     var $prompt_template : Text
@@ -49,7 +49,7 @@ Else
     $model_name:="gemma"
     $model_alias:="embedding"
     
-    $model:=cs.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
     $models.push($model)
     
     $file:=$homeFolder.file("llama/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
@@ -60,14 +60,14 @@ Else
     $model_name:="llama"
     $model_alias:="default"
     
-    $model:=cs.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
     $models.push($model)
     
     var $port : Integer
     $port:=8080
     
-    var $event : cs.LlamaEdgeEvent
-    $event:=cs.LlamaEdgeEvent.new()
+    var $event : cs.LlamaEdge.LlamaEdgeEvent
+    $event:=cs.LlamaEdge.LlamaEdgeEvent.new()
     /*
         Function onError($params : Object; $error : cs._error)
         Function onSuccess($params : Object)
@@ -75,7 +75,7 @@ Else
     $event.onError:=Formula(ALERT($2.message))
     $event.onSuccess:=Formula(ALERT($1.models.extract("file.name").join(",")+" loaded!"))
 
-    $LlamaEdge:=cs.LlamaEdge.new($port; $models; {home: $homeFolder}; $event)
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; {home: $homeFolder}; $event)
     
 End if   
 ```
@@ -131,9 +131,9 @@ $responseEmbeddings:=$AIClient.embeddings.create($text)
 Finally to terminate the server:
 
 ```4d
-var $llama : cs.llama.llama
-$llama:=cs.llama.llama.new()
-$llama.terminate()
+var $LlamaEdge : cs.LlamaEdge.LlamaEdge
+$LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()
+$LlamaEdge.terminate()
 ```
 
 #### AI Kit compatibility
