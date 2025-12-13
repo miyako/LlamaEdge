@@ -34,6 +34,5 @@ curl -X POST 'http://localhost:8080/v1/images/generations' \
 install_name_tool -add_rpath "@executable_path/../plugin" wasmedge
 install_name_tool -add_rpath "@loader_path/../plugin" 
 install_name_tool -change @rpath/libwasmedge.0.dylib @loader_path/../lib/libwasmedge.0.dylib 
-install_name_tool -change @rpath/libwasmedgePluginWasmEdgeStableDiffusion.dylib 
 install_name_tool -change /opt/homebrew/opt/llvm@18/lib/libLLVM.dylib @loader_path/libLLVM.dylib 
 ```
