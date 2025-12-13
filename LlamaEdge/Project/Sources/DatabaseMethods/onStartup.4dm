@@ -1,0 +1,62 @@
+var $LlamaEdge : cs:C1710.LlamaEdge
+
+If (False:C215)
+	$LlamaEdge:=cs:C1710.LlamaEdge.new()  //default
+Else 
+	var $homeFolder : 4D:C1709.Folder
+	$homeFolder:=Folder:C1567(fk home folder:K87:24).folder(".LlamaEdge")
+	var $model : cs:C1710.LlamaEdgeModel
+	var $file : 4D:C1709.File
+	var $URL : Text
+	var $prompt_template : Text
+	var $ctx_size : Integer
+	
+	var $models : Collection
+	$models:=[]
+	
+/*
+if file doesn't exist, it is downloaded from URL 
+paths are relative to $home which is mapped to . in wasm
+*/
+	
+	//#1 is chat model
+	
+	$file:=$homeFolder.file("llama/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
+	$URL:="https://huggingface.co/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+	$path:="./.LlamaEdge/llama/"+$file.fullName
+	$prompt_template:="llama-3-chat"
+	$ctx_size:=4096
+	$model_name:="llama"
+	$model_alias:="default"
+	
+	$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+	$models.push($model)
+	
+	//#2 is embedding model
+	
+	$file:=$homeFolder.file("gemma/embeddinggemma-300M-Q8_0.gguf")
+	$URL:="https://huggingface.co/second-state/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300m-Q8_0.gguf"
+	$path:="./.LlamaEdge/gemma/"+$file.fullName
+	$prompt_template:="embedding"
+	$ctx_size:=8192
+	$model_name:="gemma"
+	$model_alias:="embedding"
+	
+	$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+	$models.push($model)
+	
+	var $port : Integer
+	$port:=8080
+	
+	var $event : cs:C1710.LlamaEdgeEvent
+	$event:=cs:C1710.LlamaEdgeEvent.new()
+/*
+Function onError($params : Object; $error : cs._error)
+Function onSuccess($params : Object)
+*/
+	$event.onError:=Formula:C1597(ALERT:C41($2.message))
+	$event.onSuccess:=Formula:C1597(ALERT:C41($1.models.extract("file.name").join(",")+" loaded!"))
+	
+	$LlamaEdge:=cs:C1710.LlamaEdge.new($port; $models; {home: $homeFolder}; $event)
+	
+End if 
