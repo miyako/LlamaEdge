@@ -5,4 +5,7 @@ Local inference engine
 
 * Without [Stable Diffusion](https://github.com/LlamaEdge/sd-api-server) or [Whisper](https://github.com/LlamaEdge/whisper-api-server) plugins which are for Apple Silicon only.
 
-`WASMEDGE_PLUGIN_PATH`
+## Dependencies
+
+* [miyako/tcp](https://github.com/miyako/tcp)
+* [miyako/workers](https://github.com/miyako/workers)
