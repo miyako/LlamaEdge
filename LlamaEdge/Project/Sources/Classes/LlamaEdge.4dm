@@ -23,16 +23,7 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $eve
 			var $prompt_template : Text
 			var $ctx_size : Integer
 			
-			$file:=$homeFolder.file("gemma/embeddinggemma-300M-Q8_0.gguf")
-			$URL:="https://huggingface.co/second-state/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300m-Q8_0.gguf"
-			$path:="./.LlamaEdge/gemma/"+$file.fullName
-			$prompt_template:="embedding"
-			$ctx_size:=8192
-			$model_name:="gemma"
-			$model_alias:="embedding"
-			
-			$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
-			$models.push($model)
+			//#1 is chat model
 			
 			$file:=$homeFolder.file("llama/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
 			$URL:="https://huggingface.co/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
@@ -41,6 +32,19 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $eve
 			$ctx_size:=4096
 			$model_name:="llama"
 			$model_alias:="default"
+			
+			$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+			$models.push($model)
+			
+			//#2 is embedding model
+			
+			$file:=$homeFolder.file("nomic-ai/nomic-embed-text-v2-moe.Q5_K_M.gguf")
+			$URL:="https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF/resolve/main/nomic-embed-text-v2-moe.Q5_K_M.gguf"
+			$path:="./.LlamaEdge/nomic-ai/"+$file.fullName
+			$prompt_template:="embedding"
+			$ctx_size:=512
+			$model_name:="nomic"
+			$model_alias:="embedding"
 			
 			$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
 			$models.push($model)

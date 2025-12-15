@@ -34,12 +34,12 @@ paths are relative to $home which is mapped to . in wasm
 	
 	//#2 is embedding model
 	
-	$file:=$homeFolder.file("gemma/embeddinggemma-300M-Q8_0.gguf")
-	$URL:="https://huggingface.co/second-state/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300m-Q8_0.gguf"
-	$path:="./.LlamaEdge/gemma/"+$file.fullName
+	$file:=$homeFolder.file("nomic-ai/nomic-embed-text-v2-moe.Q5_K_M.gguf")
+	$URL:="https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF/resolve/main/nomic-embed-text-v2-moe.Q5_K_M.gguf"
+	$path:="./.LlamaEdge/nomic-ai/"+$file.fullName
 	$prompt_template:="embedding"
-	$ctx_size:=8192
-	$model_name:="gemma"
+	$ctx_size:=512
+	$model_name:="nomic"
 	$model_alias:="embedding"
 	
 	$model:=cs:C1710.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)

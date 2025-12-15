@@ -27,7 +27,7 @@ If (False)
 Else 
     var $homeFolder : 4D.Folder
     $homeFolder:=Folder(fk home folder).folder(".LlamaEdge")
-    var $model : cs.LlamaEdge.LlamaEdgeModel
+    var $model : cs.LlamaEdgeModel
     var $file : 4D.File
     var $URL : Text
     var $prompt_template : Text
@@ -41,16 +41,7 @@ Else
         paths are relative to $home which is mapped to . in wasm
     */
     
-    $file:=$homeFolder.file("gemma/embeddinggemma-300M-Q8_0.gguf")
-    $URL:="https://huggingface.co/second-state/embeddinggemma-300m-GGUF/resolve/main/embeddinggemma-300m-Q8_0.gguf"
-    $path:="./.LlamaEdge/gemma/"+$file.fullName
-    $prompt_template:="embedding"
-    $ctx_size:=8192
-    $model_name:="gemma"
-    $model_alias:="embedding"
-    
-    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
-    $models.push($model)
+    //#1 is chat model
     
     $file:=$homeFolder.file("llama/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
     $URL:="https://huggingface.co/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
@@ -59,6 +50,19 @@ Else
     $ctx_size:=4096
     $model_name:="llama"
     $model_alias:="default"
+    
+    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+    $models.push($model)
+    
+    //#2 is embedding model
+    
+    $file:=$homeFolder.file("nomic-ai/nomic-embed-text-v2-moe.Q5_K_M.gguf")
+    $URL:="https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF/resolve/main/nomic-embed-text-v2-moe.Q5_K_M.gguf"
+    $path:="./.LlamaEdge/nomic-ai/"+$file.fullName
+    $prompt_template:="embedding"
+    $ctx_size:=512
+    $model_name:="nomic"
+    $model_alias:="embedding"
     
     $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
     $models.push($model)
@@ -74,7 +78,7 @@ Else
     */
     $event.onError:=Formula(ALERT($2.message))
     $event.onSuccess:=Formula(ALERT($1.models.extract("file.name").join(",")+" loaded!"))
-
+    
     $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; {home: $homeFolder}; $event)
     
 End if   
