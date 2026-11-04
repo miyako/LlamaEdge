@@ -27,9 +27,11 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $for
 	This:C1470.decodeData:=False:C215
 	This:C1470.bufferSize:=10*(1024^2)
 	This:C1470.event:=$event
-	This:C1470.options.onTerminate:=This:C1470.event.onTerminate
-	This:C1470.options.onStdErr:=This:C1470.event.onStdErr
-	This:C1470.options.onStdOut:=This:C1470.event.onStdOut
+	If (This:C1470.event#Null:C1517)
+		This:C1470.options.onTerminate:=This:C1470.event.onTerminate
+		This:C1470.options.onStdErr:=This:C1470.event.onStdErr
+		This:C1470.options.onStdOut:=This:C1470.event.onStdOut
+	End if 
 	
 	This:C1470.start()
 	
@@ -50,6 +52,21 @@ Function _head($_model : cs:C1710._model)
 	If ($_model.file.parent#Null:C1517) && ($_model.URL#"")
 		$_model.file.parent.create()
 		This:C1470.head($_model)
+	Else 
+		//nothing to download: do not launch without the model file
+		var $message : Text
+		$message:="no model to load: file does not exist and there is no URL to download it"
+		If ($_model.file#Null:C1517)
+			$message+=": "+$_model.file.path
+		End if 
+		LOG EVENT:C667(Into 4D debug message:K38:5; "LlamaEdge: "+$message)
+		This:C1470._notifyError(cs:C1710.event.error.new(2; $message; This:C1470.models()))
+	End if 
+	
+Function _notifyError($error : cs:C1710.event.error)
+	
+	If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
+		This:C1470.event.onError.call(This:C1470; This:C1470.options; $error)
 	End if 
 	
 Function head($_model : cs:C1710._model)

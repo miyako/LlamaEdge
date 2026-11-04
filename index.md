@@ -42,7 +42,7 @@ Else
     */
     
     $event.onError:=Formula(ALERT($2.message))
-    $event.onSuccess:=Formula(ALERT($2.models.extract("name").join(",")+" loaded!"))
+    $event.onSuccess:=Formula(ALERT($2.models.extract("name").join(",")+" launch requested"))  //not yet ready; poll /v1/models
     $event.onData:=Formula(LOG EVENT(Into 4D debug message; "download:"+String((This.range.end/This.range.length)*100; "###.00%")))
     $event.onResponse:=Formula(LOG EVENT(Into 4D debug message; "download complete"))
     $event.onTerminate:=Formula(LOG EVENT(Into 4D debug message; (["process"; $1.pid; "terminated!"].join(" "))))
@@ -70,6 +70,10 @@ Unless the server is already running (in which case the costructor does nothing)
 
 1. The specified model is downloaded via HTTP
 2. The `wasmedge` runtime starts the `llama-api-server` program
+
+`onSuccess` means that the launch was requested, not that the server is ready: poll an endpoint such as `/v1/models` before sending requests.
+
+A model whose file does not exist is downloaded from its URL. If such a model has no URL, there is nothing to download: `event.onError` receives an error with code `2` naming the missing file, and the server is not started. `event` may be `Null`, in which case no callbacks are delivered.
 
 Now you can test the server:
 
@@ -114,7 +118,7 @@ var $responseEmbeddings : cs.AIKit.OpenAIEmbeddingsResult
 $responseEmbeddings:=$AIClient.embeddings.create($text)
 ```
 
-Finally to terminate the server:
+Finally to terminate the server (`cs.LlamaEdge.LlamaEdge.new()` with no arguments does nothing if a server is already running on port `8080`; otherwise it starts the default models in the background):
 
 ```4d
 var $LlamaEdge : cs.LlamaEdge.LlamaEdge
