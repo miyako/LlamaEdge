@@ -13,23 +13,61 @@ layout: default
 
 [LlamaEdge](https://llamaedge.com) is an open-source framework / platform for running large language models (LLMs) — locally or on edge devices. Built with a stack using Rust + WebAssembly, the runtime is lightweight, portable, and dependency-free.
 
-The [`llama-api-server`](https://github.com/LlamaEdge/LlamaEdge/tree/main/llama-api-server) runtime supports the Open AI compatible web service endpoint `/v1/chat/completions` and `/v1/embeddings`.
+The [`llama-api-server`](https://github.com/LlamaEdge/LlamaEdge/tree/main/llama-api-server) runtime supports the Open AI compatible web service endpoints `/v1/chat/completions` and `/v1/embeddings`.
 
 #### Usage
 
 Instantiate `cs.LlamaEdge.LlamaEdge` in your *On Startup* database method:
 
 ```4d
-var $TEI : cs.TEI.TEI
+var $LlamaEdge : cs.LlamaEdge.LlamaEdge
 
 If (False)
-    $TEI:=cs.TEI.TEI.new()  //default
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new()  //default
 Else 
     var $homeFolder : 4D.Folder
-    $homeFolder:=Folder(fk home folder).folder(".TEI")
+    $homeFolder:=Folder(fk home folder).folder(".LlamaEdge")
+    var $model : cs.LlamaEdge.LlamaEdgeModel
     var $file : 4D.File
-    var $URL : Text
+    var $URL; $path; $prompt_template; $model_name; $model_alias : Text
+    var $ctx_size : Integer
+    
+    var $models : Collection
+    $models:=[]
+    
+    /*
+        if file doesn't exist, it is downloaded from URL
+        paths are relative to $home which is mapped to . in wasm
+    */
+    
+    //#1 is chat model
+    
+    $file:=$homeFolder.file("llama/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
+    $URL:="https://huggingface.co/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+    $path:="./.LlamaEdge/llama/"+$file.fullName
+    $prompt_template:="llama-3-chat"
+    $ctx_size:=4096
+    $model_name:="llama"
+    $model_alias:="default"
+    
+    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+    $models.push($model)
+    
+    //#2 is embedding model
+    
+    $file:=$homeFolder.file("nomic-ai/nomic-embed-text-v2-moe.Q5_K_M.gguf")
+    $URL:="https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe-GGUF/resolve/main/nomic-embed-text-v2-moe.Q5_K_M.gguf"
+    $path:="./.LlamaEdge/nomic-ai/"+$file.fullName
+    $prompt_template:="embedding"
+    $ctx_size:=512
+    $model_name:="nomic"
+    $model_alias:="embedding"
+    
+    $model:=cs.LlamaEdge.LlamaEdgeModel.new($file; $URL; $path; $prompt_template; $ctx_size; $model_name; $model_alias)
+    $models.push($model)
+    
     var $port : Integer
+    $port:=8080
     
     var $event : cs.event.event
     $event:=cs.event.event.new()
@@ -47,28 +85,14 @@ Else
     $event.onResponse:=Formula(LOG EVENT(Into 4D debug message; "download complete"))
     $event.onTerminate:=Formula(LOG EVENT(Into 4D debug message; (["process"; $1.pid; "terminated!"].join(" "))))
     
-    /*
-        embeddings
-    */
+    $LlamaEdge:=cs.LlamaEdge.LlamaEdge.new($port; $models; {home: $homeFolder}; $event)
     
-    If (False)  //Hugging Face mode (recommended)
-        $folder:=$homeFolder.folder("dangvantuan/sentence-camembert-base")
-        $URL:="dangvantuan/sentence-camembert-base"
-    Else   //HTTP mode (must be .zip)
-        $folder:=$homeFolder.folder("dangvantuan/sentence-camembert-base")
-        $URL:="https://github.com/miyako/TEI/releases/download/models/sentence-camembert-base.zip"
-    End if 
-    
-    $port:=8085
-    $TEI:=cs.TEI.TEI.new($port; $folder; $URL; {\
-    max_concurrent_requests: 512}; $event)
-    
-End if  
+End if 
 ```
 
-Unless the server is already running (in which case the costructor does nothing), the following procedure runs in the background:
+Unless the server is already running (in which case the constructor does nothing), the following procedure runs in the background:
 
-1. The specified model is downloaded via HTTP
+1. Any model file that does not exist is downloaded via HTTP
 2. The `wasmedge` runtime starts the `llama-api-server` program
 
 `onSuccess` means that the launch was requested, not that the server is ready: poll an endpoint such as `/v1/models` before sending requests.
@@ -128,7 +152,7 @@ $LlamaEdge.terminate()
 
 #### AI Kit compatibility
 
-The API is compatibile with [Open AI](https://platform.openai.com/docs/api-reference/). 
+The API is compatible with [Open AI](https://platform.openai.com/docs/api-reference/). 
 
 |Class|API|Availability|
 |-|-|:-:|
