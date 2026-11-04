@@ -97,7 +97,7 @@ Unless the server is already running (in which case the constructor does nothing
 
 `onSuccess` means that the launch was requested, not that the server is ready: poll an endpoint such as `/v1/models` before sending requests.
 
-A model whose file does not exist is downloaded from its URL. If such a model has no URL, there is nothing to download: `event.onError` receives an error with code `2` naming the missing file, and the server is not started. Each model must be a `cs.LlamaEdge.LlamaEdgeModel`; a model given as text (a name or URL) cannot be loaded and is reported the same way (code `2`), before anything is downloaded. `event` may be `Null`, in which case no callbacks are delivered.
+A model whose file does not exist is downloaded from its URL. The download is written to a `.part` file next to the model and renamed when complete, so an interrupted download is never used as a model; it is restarted on the next launch. An HTTP error during the download is reported to `event.onError` (code `2`). If such a model has no URL, there is nothing to download: `event.onError` receives an error with code `2` naming the missing file, and the server is not started. Each model must be a `cs.LlamaEdge.LlamaEdgeModel`; a model given as text (a name or URL) cannot be loaded and is reported the same way (code `2`), before anything is downloaded. `event` may be `Null`, in which case no callbacks are delivered.
 
 Now you can test the server:
 

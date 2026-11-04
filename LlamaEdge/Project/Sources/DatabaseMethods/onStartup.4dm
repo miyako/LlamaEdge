@@ -59,7 +59,7 @@ Function onTerminate($worker : 4D.SystemWorker; $params : Object)
 */
 	
 	$event.onError:=Formula:C1597(ALERT:C41($2.message))
-	$event.onSuccess:=Formula:C1597(ALERT:C41($2.models.extract("name").join(",")+" loaded!"))
+	$event.onSuccess:=Formula:C1597(ALERT:C41($2.models.extract("name").join(",")+" launch requested"))  //not yet ready; poll /v1/models
 	$event.onData:=Formula:C1597(LOG EVENT:C667(Into 4D debug message:K38:5; "download:"+String:C10((This:C1470.range.end/This:C1470.range.length)*100; "###.00%")))
 	$event.onResponse:=Formula:C1597(LOG EVENT:C667(Into 4D debug message:K38:5; "download complete"))
 	$event.onTerminate:=Formula:C1597(LOG EVENT:C667(Into 4D debug message:K38:5; (["process"; $1.pid; "terminated!"].join(" "))))

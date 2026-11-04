@@ -7,6 +7,7 @@ property file : 4D:C1709.File
 property options : Object
 property _onResponse : 4D:C1709.Function
 property _fileHandle : 4D:C1709.FileHandle
+property _partFile : 4D:C1709.File
 property returnResponseBody : Boolean
 property decodeData : Boolean
 property range : Object
@@ -87,7 +88,12 @@ Function head($_model : cs:C1710._model)
 			($request.response.headers["accept-ranges"]="bytes")
 			This:C1470.range.length:=Num:C11($request.response.headers["content-length"])
 		End if 
-		This:C1470._fileHandle:=This:C1470.file.open("write")
+		//download to a .part file so that an interrupted download is never mistaken for a model
+		This:C1470._partFile:=This:C1470.file.parent.file(This:C1470.file.fullName+".part")
+		If (This:C1470._partFile.exists)
+			This:C1470._partFile.delete()
+		End if 
+		This:C1470._fileHandle:=This:C1470._partFile.open("write")
 		If (This:C1470.range.length#0)
 			var $end; $length : Real
 			$end:=This:C1470.range.start+(This:C1470.bufferSize-1)
@@ -153,11 +159,9 @@ Function onResponse($request : 4D:C1709.HTTPRequest; $event : Object)
 	Case of 
 		: (This:C1470.range.end=0)  //simple get
 			If ($request.response.status=200)
-				This:C1470._fileHandle:=Null:C1517
-				If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
-					This:C1470.event.onResponse.call(This:C1470; $request; $event)
-				End if 
-				This:C1470.start()
+				This:C1470._complete($request; $event)
+			Else 
+				This:C1470.onError($request; $event)
 			End if 
 		Else   //range get
 			If ([200; 206].includes($request.response.status))
@@ -170,20 +174,33 @@ Function onResponse($request : 4D:C1709.HTTPRequest; $event : Object)
 					This:C1470.headers.Range:="bytes="+String:C10(This:C1470.range.start)+"-"+String:C10(This:C1470.range.end)
 					4D:C1709.HTTPRequest.new(This:C1470.URL; This:C1470)
 				Else 
-					This:C1470._fileHandle:=Null:C1517
-					If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
-						This:C1470.event.onResponse.call(This:C1470; $request; $event)
-					End if 
-					This:C1470.start()
+					This:C1470._complete($request; $event)
 				End if 
+			Else 
+				This:C1470.onError($request; $event)
 			End if 
 			
 	End case 
+	
+Function _complete($request : 4D:C1709.HTTPRequest; $event : Object)
+	
+	This:C1470._fileHandle:=Null:C1517  //close before rename
+	If (This:C1470.file.exists)
+		This:C1470.file.delete()
+	End if 
+	This:C1470._partFile.rename(This:C1470.file.fullName)
+	This:C1470._partFile:=Null:C1517
+	If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
+		This:C1470.event.onResponse.call(This:C1470; $request; $event)
+	End if 
+	This:C1470.start()
 	
 Function onError($request : 4D:C1709.HTTPRequest; $event : Object)
 	
 	If (Value type:C1509(This:C1470._onResponse)=Is object:K8:27) && (OB Instance of:C1731(This:C1470._onResponse; 4D:C1709.Function))
 		This:C1470._onResponse.call(This:C1470; {success: False:C215}; This:C1470.options)
 		This:C1470._fileHandle:=Null:C1517
-		This:C1470.file.delete()
+		If (This:C1470._partFile#Null:C1517) && (This:C1470._partFile.exists)
+			This:C1470._partFile.delete()
+		End if 
 	End if 
