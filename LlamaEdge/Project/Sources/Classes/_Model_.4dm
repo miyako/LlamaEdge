@@ -105,6 +105,15 @@ Function start()
 	var $URLs : Collection
 	$URLs:=This:C1470.options.models.filter(Formula:C1597(Value type:C1509($1.value)=Is text:K8:3))
 	
+	If ($URLs.length#0)
+		//llama-api-server preloads local GGUF files (--nn-preload); a model name or URL as text cannot be loaded
+		var $message : Text
+		$message:="unsupported model: pass cs.LlamaEdge.LlamaEdgeModel instances, not text: "+$URLs.join(", ")
+		LOG EVENT:C667(Into 4D debug message:K38:5; "LlamaEdge: "+$message)
+		This:C1470._notifyError(cs:C1710.event.error.new(2; $message; cs:C1710.event.models.new([])))
+		return 
+	End if 
+	
 	var $_model : cs:C1710._model
 	$_model:=This:C1470.options.models.query("file.exists == :1"; False:C215).first()
 	
@@ -112,14 +121,6 @@ Function start()
 		: ($_model#Null:C1517)
 			
 			This:C1470._head($_model)
-			
-		: ($URLs.length#0)
-			//hugging face mode
-			var $URL : Text
-			$URL:=$URLs[0]
-			This:C1470.options.model:=$URL
-			This:C1470.file:={name: $URL}
-			This:C1470.start()
 			
 		Else 
 			
