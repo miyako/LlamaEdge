@@ -7,6 +7,7 @@ property file : 4D:C1709.File
 property options : Object
 property _onResponse : 4D:C1709.Function
 property _fileHandle : 4D:C1709.FileHandle
+property _partFile : 4D:C1709.File
 property returnResponseBody : Boolean
 property decodeData : Boolean
 property range : Object
@@ -27,9 +28,11 @@ Class constructor($port : Integer; $models : Collection; $options : Object; $for
 	This:C1470.decodeData:=False:C215
 	This:C1470.bufferSize:=10*(1024^2)
 	This:C1470.event:=$event
-	This:C1470.options.onTerminate:=This:C1470.event.onTerminate
-	This:C1470.options.onStdErr:=This:C1470.event.onStdErr
-	This:C1470.options.onStdOut:=This:C1470.event.onStdOut
+	If (This:C1470.event#Null:C1517)
+		This:C1470.options.onTerminate:=This:C1470.event.onTerminate
+		This:C1470.options.onStdErr:=This:C1470.event.onStdErr
+		This:C1470.options.onStdOut:=This:C1470.event.onStdOut
+	End if 
 	
 	This:C1470.start()
 	
@@ -50,6 +53,21 @@ Function _head($_model : cs:C1710._model)
 	If ($_model.file.parent#Null:C1517) && ($_model.URL#"")
 		$_model.file.parent.create()
 		This:C1470.head($_model)
+	Else 
+		//nothing to download: do not launch without the model file
+		var $message : Text
+		$message:="no model to load: file does not exist and there is no URL to download it"
+		If ($_model.file#Null:C1517)
+			$message+=": "+$_model.file.path
+		End if 
+		LOG EVENT:C667(Into 4D debug message:K38:5; "LlamaEdge: "+$message)
+		This:C1470._notifyError(cs:C1710.event.error.new(2; $message; This:C1470.models()))
+	End if 
+	
+Function _notifyError($error : cs:C1710.event.error)
+	
+	If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
+		This:C1470.event.onError.call(This:C1470; This:C1470.options; $error)
 	End if 
 	
 Function head($_model : cs:C1710._model)
@@ -70,7 +88,12 @@ Function head($_model : cs:C1710._model)
 			($request.response.headers["accept-ranges"]="bytes")
 			This:C1470.range.length:=Num:C11($request.response.headers["content-length"])
 		End if 
-		This:C1470._fileHandle:=This:C1470.file.open("write")
+		//download to a .part file so that an interrupted download is never mistaken for a model
+		This:C1470._partFile:=This:C1470.file.parent.file(This:C1470.file.fullName+".part")
+		If (This:C1470._partFile.exists)
+			This:C1470._partFile.delete()
+		End if 
+		This:C1470._fileHandle:=This:C1470._partFile.open("write")
 		If (This:C1470.range.length#0)
 			var $end; $length : Real
 			$end:=This:C1470.range.start+(This:C1470.bufferSize-1)
@@ -88,6 +111,15 @@ Function start()
 	var $URLs : Collection
 	$URLs:=This:C1470.options.models.filter(Formula:C1597(Value type:C1509($1.value)=Is text:K8:3))
 	
+	If ($URLs.length#0)
+		//llama-api-server preloads local GGUF files (--nn-preload); a model name or URL as text cannot be loaded
+		var $message : Text
+		$message:="unsupported model: pass cs.LlamaEdge.LlamaEdgeModel instances, not text: "+$URLs.join(", ")
+		LOG EVENT:C667(Into 4D debug message:K38:5; "LlamaEdge: "+$message)
+		This:C1470._notifyError(cs:C1710.event.error.new(2; $message; cs:C1710.event.models.new([])))
+		return 
+	End if 
+	
 	var $_model : cs:C1710._model
 	$_model:=This:C1470.options.models.query("file.exists == :1"; False:C215).first()
 	
@@ -95,14 +127,6 @@ Function start()
 		: ($_model#Null:C1517)
 			
 			This:C1470._head($_model)
-			
-		: ($URLs.length#0)
-			//hugging face mode
-			var $URL : Text
-			$URL:=$URLs[0]
-			This:C1470.options.model:=$URL
-			This:C1470.file:={name: $URL}
-			This:C1470.start()
 			
 		Else 
 			
@@ -135,11 +159,9 @@ Function onResponse($request : 4D:C1709.HTTPRequest; $event : Object)
 	Case of 
 		: (This:C1470.range.end=0)  //simple get
 			If ($request.response.status=200)
-				This:C1470._fileHandle:=Null:C1517
-				If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
-					This:C1470.event.onResponse.call(This:C1470; $request; $event)
-				End if 
-				This:C1470.start()
+				This:C1470._complete($request; $event)
+			Else 
+				This:C1470.onError($request; $event)
 			End if 
 		Else   //range get
 			If ([200; 206].includes($request.response.status))
@@ -152,20 +174,33 @@ Function onResponse($request : 4D:C1709.HTTPRequest; $event : Object)
 					This:C1470.headers.Range:="bytes="+String:C10(This:C1470.range.start)+"-"+String:C10(This:C1470.range.end)
 					4D:C1709.HTTPRequest.new(This:C1470.URL; This:C1470)
 				Else 
-					This:C1470._fileHandle:=Null:C1517
-					If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
-						This:C1470.event.onResponse.call(This:C1470; $request; $event)
-					End if 
-					This:C1470.start()
+					This:C1470._complete($request; $event)
 				End if 
+			Else 
+				This:C1470.onError($request; $event)
 			End if 
 			
 	End case 
+	
+Function _complete($request : 4D:C1709.HTTPRequest; $event : Object)
+	
+	This:C1470._fileHandle:=Null:C1517  //close before rename
+	If (This:C1470.file.exists)
+		This:C1470.file.delete()
+	End if 
+	This:C1470._partFile.rename(This:C1470.file.fullName)
+	This:C1470._partFile:=Null:C1517
+	If (This:C1470.event#Null:C1517) && (OB Instance of:C1731(This:C1470.event; cs:C1710.event.event))
+		This:C1470.event.onResponse.call(This:C1470; $request; $event)
+	End if 
+	This:C1470.start()
 	
 Function onError($request : 4D:C1709.HTTPRequest; $event : Object)
 	
 	If (Value type:C1509(This:C1470._onResponse)=Is object:K8:27) && (OB Instance of:C1731(This:C1470._onResponse; 4D:C1709.Function))
 		This:C1470._onResponse.call(This:C1470; {success: False:C215}; This:C1470.options)
 		This:C1470._fileHandle:=Null:C1517
-		This:C1470.file.delete()
+		If (This:C1470._partFile#Null:C1517) && (This:C1470._partFile.exists)
+			This:C1470._partFile.delete()
+		End if 
 	End if 
